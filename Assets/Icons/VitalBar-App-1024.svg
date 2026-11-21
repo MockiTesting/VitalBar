@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  VitalBar — Application Icon (1024×1024)
+  结构：824×824 squircle 容器（Big Sur 基准，r=185）+ 内凹仪表底盘（R=310）
+        + 4 段等分彩色弧带（R=258 / 线宽 56 / 每段 64°，间隔 26°）
+          顺时针：CPU 右上 → Memory 右下 → Network 左下 → Battery 左上
+        + 中央指针（r 46→212）与轴心（r=54）
+  可编辑性：全部为原生 SVG 图元，改色只需修改 <defs> 中的渐变 stop
+  可选：删除 <g id="drop-shadow"> 即得无投影的纯矢量版本
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" fill="none">
+  <defs>
+    <!-- 容器底色 -->
+    <linearGradient id="vb-shell" x1="0.14" y1="0" x2="0.86" y2="1">
+      <stop offset="0" stop-color="#3B3489"/>
+      <stop offset="0.46" stop-color="#1D1849"/>
+      <stop offset="1" stop-color="#0F0B26"/>
+    </linearGradient>
+
+    <!-- 容器内缘受光 -->
+    <linearGradient id="vb-rim" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.36"/>
+      <stop offset="0.32" stop-color="#FFFFFF" stop-opacity="0.1"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0.02"/>
+    </linearGradient>
+
+    <!-- 顶部高光 -->
+    <linearGradient id="vb-specular" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+
+    <!-- 仪表底盘：内凹圆盘 -->
+    <radialGradient id="vb-plate" cx="0.5" cy="0.42" r="0.66">
+      <stop offset="0" stop-color="#2C2569"/>
+      <stop offset="0.7" stop-color="#181239"/>
+      <stop offset="1" stop-color="#131029"/>
+    </radialGradient>
+
+    <!-- 四通道渐变：统一自上而下受光（userSpaceOnUse，保证四段光照一致） -->
+    <linearGradient id="g-cpu" gradientUnits="userSpaceOnUse" x1="512" y1="200" x2="512" y2="830">
+      <stop offset="0" stop-color="#8BF7FE"/>
+      <stop offset="1" stop-color="#12A8DA"/>
+    </linearGradient>
+    <linearGradient id="g-memory" gradientUnits="userSpaceOnUse" x1="512" y1="200" x2="512" y2="830">
+      <stop offset="0" stop-color="#C6B2FF"/>
+      <stop offset="1" stop-color="#6B46E6"/>
+    </linearGradient>
+    <linearGradient id="g-network" gradientUnits="userSpaceOnUse" x1="512" y1="200" x2="512" y2="830">
+      <stop offset="0" stop-color="#8EFDC9"/>
+      <stop offset="1" stop-color="#10BD84"/>
+    </linearGradient>
+    <linearGradient id="g-battery" gradientUnits="userSpaceOnUse" x1="512" y1="200" x2="512" y2="830">
+      <stop offset="0" stop-color="#FFEBB8"/>
+      <stop offset="1" stop-color="#FFA21A"/>
+    </linearGradient>
+
+    <!-- 指针金属渐变 -->
+    <linearGradient id="vb-needle" gradientUnits="userSpaceOnUse" x1="560" y1="480" x2="640" y2="390">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="0.5" stop-color="#F2F5FB"/>
+      <stop offset="1" stop-color="#C7CFDF"/>
+    </linearGradient>
+
+    <!-- 轴心 -->
+    <radialGradient id="vb-hub" cx="0.36" cy="0.26" r="0.86">
+      <stop offset="0" stop-color="#3A3268"/>
+      <stop offset="0.58" stop-color="#151232"/>
+      <stop offset="1" stop-color="#0A0819"/>
+    </radialGradient>
+
+    <filter id="vb-drop-shadow" x="-12%" y="-12%" width="124%" height="132%">
+      <feDropShadow dx="0" dy="10" stdDeviation="18" flood-color="#000000" flood-opacity="0.34"/>
+    </filter>
+
+    <filter id="vb-needle-shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="2" dy="4" stdDeviation="5" flood-color="#000000" flood-opacity="0.55"/>
+    </filter>
+
+    <filter id="vb-bloom" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="11"/>
+    </filter>
+
+    <clipPath id="vb-clip">
+      <rect x="100" y="100" width="824" height="824" rx="185"/>
+    </clipPath>
+  </defs>
+
+  <!-- 投影（可整组删除） -->
+  <g id="drop-shadow">
+    <rect x="100" y="100" width="824" height="824" rx="185" fill="#04030D" filter="url(#vb-drop-shadow)"/>
+  </g>
+
+  <!-- 容器 -->
+  <g id="container">
+    <rect id="shell" x="100" y="100" width="824" height="824" rx="185" fill="url(#vb-shell)"/>
+    <g clip-path="url(#vb-clip)">
+      <rect id="specular" x="100" y="100" width="824" height="380" fill="url(#vb-specular)"/>
+    </g>
+    <rect id="shell-rim" x="101.25" y="101.25" width="821.5" height="821.5" rx="183.75"
+          stroke="url(#vb-rim)" stroke-width="2.5"/>
+  </g>
+
+  <!-- 仪表底盘 -->
+  <g id="gauge-plate">
+    <circle cx="512" cy="512" r="310" fill="url(#vb-plate)"/>
+    <circle id="plate-rim" cx="512" cy="512" r="309" stroke="#FFFFFF" stroke-opacity="0.08" stroke-width="1.5"/>
+    <circle id="plate-hairline" cx="512" cy="512" r="297" stroke="#FFFFFF" stroke-opacity="0.055" stroke-width="1.5"/>
+  </g>
+
+  <!-- 四段彩色弧带：等分 64°，间隔 26°，对应四个监测通道 -->
+  <g id="channels" stroke-width="56" stroke-linecap="round" fill="none">
+    <g id="channels-bloom" filter="url(#vb-bloom)" opacity="0.34">
+      <path d="M 570.04 260.61 A 258 258 0 0 1 763.39 453.96" stroke="#38D2EE"/>
+      <path d="M 763.39 570.04 A 258 258 0 0 1 570.04 763.39" stroke="#8B6BFF"/>
+      <path d="M 453.96 763.39 A 258 258 0 0 1 260.61 570.04" stroke="#3FE0A0"/>
+      <path d="M 260.61 453.96 A 258 258 0 0 1 453.96 260.61" stroke="#FFB43D"/>
+    </g>
+    <path id="ch-cpu" d="M 570.04 260.61 A 258 258 0 0 1 763.39 453.96" stroke="url(#g-cpu)"/>
+    <path id="ch-memory" d="M 763.39 570.04 A 258 258 0 0 1 570.04 763.39" stroke="url(#g-memory)"/>
+    <path id="ch-network" d="M 453.96 763.39 A 258 258 0 0 1 260.61 570.04" stroke="url(#g-network)"/>
+    <path id="ch-battery" d="M 260.61 453.96 A 258 258 0 0 1 453.96 260.61" stroke="url(#g-battery)"/>
+  </g>
+
+  <!-- 指针 -->
+  <g id="needle">
+    <path id="needle-blade" d="M 551.95 486.9 L 637.51 399.92 L 662.76 362.94 L 661.06 361.24 L 624.08 386.49 L 537.1 472.05 Z"
+          fill="url(#vb-needle)" stroke="#FFFFFF" stroke-opacity="0.4" stroke-width="1.2" stroke-linejoin="round"
+          filter="url(#vb-needle-shadow)"/>
+  </g>
+
+  <!-- 轴心 -->
+  <g id="hub">
+    <circle id="hub-disc" cx="512" cy="512" r="54" fill="url(#vb-hub)"/>
+    <circle id="hub-ring" cx="512" cy="512" r="54" stroke="#FFFFFF" stroke-opacity="0.22" stroke-width="1.6"/>
+    <circle id="hub-pin" cx="512" cy="512" r="12" fill="#1E1942"/>
+    <circle id="hub-pin-ring" cx="512" cy="512" r="12" stroke="#FFFFFF" stroke-opacity="0.14" stroke-width="1.4"/>
+  </g>
+</svg>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  VitalBar — Menu Bar Icon (24×24, monochrome / template)
+  几何：与主图标同源 —— 270° 圆盘弧（135° 起笔，底部 90° 开口）+ 中央指针
+  占位：图形高 19.9 / 24（约 83%），在 18 pt 菜单栏中与系统图标视觉重量一致
+  用法：作为 macOS template image 使用时保持单色（默认 #000000），
+        系统会自动按菜单栏明暗模式反色；Web 场景可继承 currentColor。
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+     fill="none" style="color:#000000">
+  <title>VitalBar Menu Bar Icon</title>
+
+  <!-- 表盘弧：270°，开口朝下 -->
+  <path id="mb-arc"
+        d="M 5.49 18.51 A 9.2 9.2 0 1 1 18.51 18.51"
+        stroke="currentColor" stroke-width="2.1"
+        stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- 指针：自轴心指向右上 -->
+  <path id="mb-needle"
+        d="M 12 12 L 16.56 7.44"
+        stroke="currentColor" stroke-width="2.1"
+        stroke-linecap="round"/>
+</svg>
