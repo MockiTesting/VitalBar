@@ -13,6 +13,10 @@ import SwiftUI
 /// 并在两条指标选择前各放一个 8 pt 身份色圆点——选中的指标在弹框里是什么颜色，
 /// 这里就先看到什么颜色，不必再去弹框里对一遍。
 struct SettingsView: View {
+    /// 离屏渲染（`--dump-ui`）时 `SamplerHub` 还没跑过一帧，`hasBattery` 会读不到电池
+    /// 而把两个电池开关置灰；截图与设计验收要看的是可用态，所以允许注入。
+    var batteryOverride: Bool? = nil
+
     @State private var look = Prefs.shared.look
     @State private var content = Prefs.shared.content
     @State private var layout = Prefs.shared.layout
@@ -26,7 +30,7 @@ struct SettingsView: View {
     @State private var launchAtLogin = LoginItem.isEnabled
     @State private var loginError: String?
 
-    private var hasBattery: Bool { SamplerHub.shared.latest.battery.installed }
+    private var hasBattery: Bool { batteryOverride ?? SamplerHub.shared.latest.battery.installed }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {

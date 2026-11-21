@@ -2,6 +2,25 @@
 
 macOS 菜单栏系统监控工具。常驻菜单栏显示 CPU、内存、GPU、磁盘占用与电池状态，点击展开面板查看四项指标的实时读数、功率分流与主要进程。纯 Swift + SwiftUI/AppKit 实现，无第三方依赖，无后台守护进程，不使用网络。
 
+## 截图
+
+<table>
+  <tr>
+    <td width="50%" align="center"><img src="screenshots/menubar-light.png" width="320" alt="菜单栏（浅色）"><br><sub>菜单栏 · 浅色</sub></td>
+    <td width="50%" align="center"><img src="screenshots/menubar-dark.png" width="320" alt="菜单栏（深色）"><br><sub>菜单栏 · 深色</sub></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><img src="screenshots/panel-light.png" width="300" alt="面板（浅色）"><br><sub>面板 · 浅色</sub></td>
+    <td width="50%" align="center"><img src="screenshots/panel-dark.png" width="300" alt="面板（深色）"><br><sub>面板 · 深色</sub></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><img src="screenshots/settings-light.png" width="300" alt="设置（浅色）"><br><sub>设置 · 浅色</sub></td>
+    <td width="50%" align="center"><img src="screenshots/settings-dark.png" width="300" alt="设置（深色）"><br><sub>设置 · 深色</sub></td>
+  </tr>
+</table>
+
+图由 `VitalBar --dump-ui` 与 `--dump-menubar` 离屏渲染得到（不是截屏，只含应用界面本身）：进程名与机器信息都是示例值，不来自任何一台真机。
+
 ## 下载
 
 下载页：[Releases](https://github.com/MockiTesting/VitalBar/releases)。提供 arm64 + x86_64 通用二进制，要求 macOS 13 或更高版本。
@@ -10,7 +29,7 @@ macOS 菜单栏系统监控工具。常驻菜单栏显示 CPU、内存、GPU、�
 2. 首次打开会被 Gatekeeper 拦下（分发包是 ad-hoc 签名、未经 Apple 公证）。到「系统设置 → 隐私与安全性」点「仍要打开」，或先执行 `xattr -d com.apple.quarantine /Applications/VitalBar.app` 再打开。
 3. 打开后到设置页顶部开启「登录时启动」，之后随登录自动运行。
 
-上述拦截只影响首次启动；如果不放心，可以按下一节自行从源码构建。
+上述拦截只影响首次启动；如果不放心，可以按「构建」一节自行从源码编译。
 
 ## 功能
 
@@ -61,6 +80,7 @@ scripts/build.sh --universal --zip
 
 ```bash
 .build/release/VitalBar --dump-ui /tmp/out   # 面板各功率状态 × 浅深 × 1×/2×、设置页浅深、电平条阶梯
+.build/release/VitalBar --dump-menubar /tmp/out  # 菜单栏状态项 × 浅深（README 里那两张条带图）
 .build/release/VitalBar --smc                # 列出本机可读的 AppleSMC 温度键与数值
 
 # 登录项相关必须在 app bundle 内执行（SMAppService 依赖 bundle 身份）
@@ -119,6 +139,7 @@ Assets/
   Icons/                  图标源矢量
   BatteryState/           电池字形生成器与绘制规范
 Resources/                Info.plist、AppIcon、菜单栏模板图
+screenshots/              README 用图（离屏渲染，非截屏）
 scripts/build.sh          构建 / 运行 / 安装 / 打包
 ```
 

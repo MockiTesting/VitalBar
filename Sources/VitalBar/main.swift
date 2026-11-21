@@ -16,6 +16,13 @@ if let i = CommandLine.arguments.firstIndex(of: "--dump-ui") {
     exit(0)
 }
 
+// 菜单栏条带（浅 / 深各一张，只含本应用状态项，可直接进 README）
+if let i = CommandLine.arguments.firstIndex(of: "--dump-menubar") {
+    let dir = CommandLine.arguments.count > i + 1 ? CommandLine.arguments[i + 1] : "/tmp/vitalbar-menubar"
+    RenderDump.dumpMenubar(dir: dir)
+    exit(0)
+}
+
 // 行描边不透明度对比（三档 × 浅深，1 绿 2 黄 1 红）
 if let i = CommandLine.arguments.firstIndex(of: "--dump-outline") {
     let dir = CommandLine.arguments.count > i + 1 ? CommandLine.arguments[i + 1] : "/tmp/vitalbar-outline"

@@ -138,9 +138,69 @@ enum RenderDump {
             render(LevelLadder(), scale: 2, dark: dark,
                    name: "ladder-\(dark ? "dark" : "light")-2x.png", base: base)
         }
-        render(SettingsView(), scale: 1, dark: false, name: "settings-light-1x.png", base: base)
-        render(SettingsView(), scale: 1, dark: true, name: "settings-dark-1x.png", base: base)
+        render(SettingsView(batteryOverride: true), scale: 1, dark: false, name: "settings-light-1x.png", base: base)
+        render(SettingsView(batteryOverride: true), scale: 1, dark: true, name: "settings-dark-1x.png", base: base)
+        // 2× 版给 README 用：1× 在 Retina 上发虚，而设置页的逻辑宽度只有 420 pt。
+        render(SettingsView(batteryOverride: true), scale: 2, dark: false, name: "settings-light-2x.png", base: base)
+        render(SettingsView(batteryOverride: true), scale: 2, dark: true, name: "settings-dark-2x.png", base: base)
         print("dump-ui done -> \(dir)")
+    }
+
+    // MARK: - 菜单栏条带
+
+    /// `--dump-menubar <dir>`：把状态项画在「浅 / 深」两种菜单栏底色上，各出一张条带图。
+    ///
+    /// 图里只有 VitalBar 自己的状态项：不掺别的应用的状态项，不含桌面、不含任何窗口，
+    /// 所以能直接进 README。样式（显示方式 / 排列 / 电池与网速开关）仍取当前偏好，
+    /// 数值固定成与面板图同一组，整套图放一起不会自相矛盾。
+    static func dumpMenubar(dir: String) {
+        _ = NSApplication.shared
+        let base = URL(fileURLWithPath: dir)
+        try? FileManager.default.createDirectory(at: base, withIntermediateDirectories: true)
+
+        let p = Prefs.shared
+        let rows = [MenuBarRow(label: Prefs.Metric.cpu.label, percent: 46),
+                    MenuBarRow(label: Prefs.Metric.memory.label, percent: 83)]
+        let model = MenuBarViewModel(
+            rows: rows, up: 18 * 1024, down: 482 * 1024,
+            battery: BatteryRead(percent: 80, external: true, charging: false,
+                                 full: false, watts: 0, installed: true),
+            batteryState: .pause)
+
+        let scale: CGFloat = 3
+        let lead: CGFloat = 22, trail: CGFloat = 10
+        for dark in [false, true] {
+            // 真机上 ink 由状态项 button 的 effectiveAppearance 决定，深色菜单栏用白墨。
+            let item = MenuBarRenderer.image(model, prefs: p, ink: dark ? .white : .black)
+            let size = NSSize(width: item.size.width + lead + trail,
+                              height: MenuBarRenderer.height)
+            guard let rep = NSBitmapImageRep(bitmapDataPlanes: nil,
+                                             pixelsWide: Int(size.width * scale),
+                                             pixelsHigh: Int(size.height * scale),
+                                             bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true,
+                                             isPlanar: false, colorSpaceName: .deviceRGB,
+                                             bytesPerRow: 0, bitsPerPixel: 0),
+                  let ctx = NSGraphicsContext(bitmapImageRep: rep) else { return }
+            rep.size = size
+            NSGraphicsContext.saveGraphicsState()
+            NSGraphicsContext.current = ctx
+            // 手工绘制不会像 cacheDisplay 那样自动按 rep.size 换算，得自己把 CTM 放大 scale 倍，
+            // 否则画面只占画布左上角的 1/scale²。
+            ctx.cgContext.scaleBy(x: scale, y: scale)
+            // 菜单栏自己的观感：浅色近白、深色近墨；底边一条 1 px 分隔线交代「这是屏幕顶边」。
+            (dark ? NSColor(srgbRed: 0.135, green: 0.135, blue: 0.145, alpha: 1)
+                  : NSColor(srgbRed: 0.945, green: 0.945, blue: 0.953, alpha: 1)).setFill()
+            NSRect(origin: .zero, size: size).fill()
+            (dark ? NSColor(white: 1, alpha: 0.16) : NSColor(white: 0, alpha: 0.16)).setFill()
+            NSRect(x: 0, y: 0, width: size.width, height: 1 / scale).fill()
+            item.draw(in: NSRect(x: lead, y: 0, width: item.size.width, height: item.size.height))
+            NSGraphicsContext.restoreGraphicsState()
+            let name = "menubar-\(dark ? "dark" : "light").png"
+            if let data = rep.representation(using: NSBitmapImageRep.FileType.png, properties: [:]) {
+                try? data.write(to: base.appendingPathComponent(name))
+            }
+            print("dump \(name) \(Int(size.width * scale))x\(Int(size.height * scale)) pt=\(Int(size.width))x\(Int(size.height))")
+        }
     }
 
     /// 离屏图的头部一律用这组固定值：`--dump-ui` 的产物会进 README，
