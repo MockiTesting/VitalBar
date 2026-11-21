@@ -119,7 +119,7 @@ Assets/
   Icons/                  图标源矢量
   BatteryState/           电池字形生成器与绘制规范
 Resources/                Info.plist、AppIcon、菜单栏模板图
-scripts/build.sh          构建 / 运行 / 安装
+scripts/build.sh          构建 / 运行 / 安装 / 打包
 ```
 
 ## 已知限制
