@@ -2,6 +2,16 @@
 
 macOS 菜单栏系统监控工具。常驻菜单栏显示 CPU、内存、GPU、磁盘占用与电池状态，点击展开面板查看四项指标的实时读数、功率分流与主要进程。纯 Swift + SwiftUI/AppKit 实现，无第三方依赖，无后台守护进程，不使用网络。
 
+## 下载
+
+下载页：[Releases](https://github.com/MockiTesting/VitalBar/releases)。提供 arm64 + x86_64 通用二进制，要求 macOS 13 或更高版本。
+
+1. 解压 `VitalBar-<版本>-macos-universal.zip`，把 `VitalBar.app` 拖进「应用程序」。
+2. 首次打开会被 Gatekeeper 拦下（分发包是 ad-hoc 签名、未经 Apple 公证）。到「系统设置 → 隐私与安全性」点「仍要打开」，或先执行 `xattr -d com.apple.quarantine /Applications/VitalBar.app` 再打开。
+3. 打开后到设置页顶部开启「登录时启动」，之后随登录自动运行。
+
+上述拦截只影响首次启动；如果不放心，可以按下一节自行从源码构建。
+
 ## 功能
 
 **菜单栏**
@@ -34,9 +44,12 @@ macOS 菜单栏系统监控工具。常驻菜单栏显示 CPU、内存、GPU、�
 # 编译 → 组装 bundle → 签名 → 启动，一条命令
 scripts/build.sh --run       # 从 build/VitalBar.app 启动（开发用）
 scripts/build.sh --install   # 装到 /Applications 并从那里启动（日常使用）
+
+# 出分发包：通用二进制（arm64 + x86_64）并压成 zip，打印 SHA-256
+scripts/build.sh --universal --zip
 ```
 
-脚本依次执行：`swift build` → 复制二进制与资源进 bundle → ad-hoc 签名（`codesign --sign -`）→ 启动。`--install` 额外做 `ditto` 安装、注销 `build/` 副本的 LaunchServices 记录，避免同一 bundle id 出现两份。
+脚本依次执行：`swift build` → 复制二进制与资源进 bundle → ad-hoc 签名（`codesign --sign -`）→ 启动。`--install` 额外做 `ditto` 安装、注销 `build/` 副本的 LaunchServices 记录，避免同一 bundle id 出现两份。`--zip` 用 `ditto -c -k --keepParent` 打包，保住签名依赖的扩展属性，解压后直接得到 `VitalBar.app`。
 
 直接执行 `.build/release/VitalBar` 不可行：进程会继承终端的沙箱限制，IOKit 与 libproc 调用被拒，只能看到空数据。必须经 bundle 启动。
 

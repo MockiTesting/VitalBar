@@ -1,10 +1,12 @@
 #!/bin/bash
 # 构建 VitalBar.app：swift 编译 → 组装 bundle → ad-hoc 签名。
-# 用法：scripts/build.sh [--run] [--install]
+# 用法：scripts/build.sh [--run] [--install] [--universal] [--zip]
 #
-#   --run      构建后杀掉旧实例，从仓库内的 build/ 启动（开发用）
-#   --install  构建后安装到 /Applications/VitalBar.app 并从那里启动（日常使用）
-#   两个都给时以 --install 为准，不会同时跑两份（Info.plist 里也禁止多实例）。
+#   --run       构建后杀掉旧实例，从仓库内的 build/ 启动（开发用）
+#   --install   构建后安装到 /Applications/VitalBar.app 并从那里启动（日常使用）
+#   --universal 同时编译 arm64 与 x86_64，产出通用二进制（分发给 Intel 机器时用）
+#   --zip       打包成 build/VitalBar-<版本>-macos-<架构>.zip，并打印 SHA-256
+#   --run 与 --install 都给时以 --install 为准，不会同时跑两份（Info.plist 里也禁止多实例）。
 #
 # 注意 `--show-bin-path` 只打印路径、**不触发编译**，必须先单独跑一次 swift build。
 set -euo pipefail
@@ -14,17 +16,30 @@ CONFIG=release
 APP="build/VitalBar.app"
 DO_RUN=0
 DO_INSTALL=0
+DO_UNIVERSAL=0
+DO_ZIP=0
 
 for arg in "$@"; do
   case "$arg" in
     --run) DO_RUN=1 ;;
     --install) DO_INSTALL=1 ;;
-    *) echo "未知参数：$arg（可用：--run / --install）"; exit 1 ;;
+    --universal) DO_UNIVERSAL=1 ;;
+    --zip) DO_ZIP=1 ;;
+    *) echo "未知参数：$arg（可用：--run / --install / --universal / --zip）"; exit 1 ;;
   esac
 done
 
-swift build -c "$CONFIG" --disable-sandbox
-BIN=$(swift build -c "$CONFIG" --disable-sandbox --show-bin-path)/VitalBar
+# bash 3.2 在 set -u 下展开空数组会报 unbound variable，故用字符串按需留空。
+# 多架构构建的产物落在 .build/apple/Products/<Config>/，--show-bin-path 会给出该路径。
+ARCH_FLAGS=""
+if [ "$DO_UNIVERSAL" = "1" ]; then
+  ARCH_FLAGS="--arch arm64 --arch x86_64"
+fi
+
+# shellcheck disable=SC2086  # ARCH_FLAGS 需要按空格拆成独立参数，留空即不限制架构
+swift build -c "$CONFIG" --disable-sandbox $ARCH_FLAGS
+# shellcheck disable=SC2086
+BIN=$(swift build -c "$CONFIG" --disable-sandbox $ARCH_FLAGS --show-bin-path)/VitalBar
 
 # 不整目录删除：就地覆盖二进制与 plist，签名用 --force 重签。
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
@@ -43,6 +58,22 @@ rm -rf "$APP/Contents/Resources/BatteryState"
 
 codesign --force --deep --sign - --timestamp=none "$APP" >/dev/null
 codesign --verify --deep --strict "$APP" && echo "signed ok: $APP"
+
+# 分发用压缩包：ditto 而不是 zip(1)，能保住签名依赖的扩展属性与资源分支。
+if [ "$DO_ZIP" = "1" ]; then
+  VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" Resources/Info.plist)
+  ARCHS=$(lipo -archs "$APP/Contents/MacOS/VitalBar")
+  case "$ARCHS" in
+    "arm64 x86_64"|"x86_64 arm64") ARCH_LABEL=universal ;;
+    *) ARCH_LABEL=$ARCHS ;;
+  esac
+  ZIP="build/VitalBar-$VERSION-macos-$ARCH_LABEL.zip"
+  rm -f "$ZIP"
+  # --keepParent：解压后是 VitalBar.app 这一层，而不是散落的 Contents/。
+  ditto -c -k --sequesterRsrc --keepParent "$APP" "$ZIP"
+  echo "packed: $ZIP ($(du -h "$ZIP" | cut -f1 | tr -d ' '))"
+  echo "sha256: $(shasum -a 256 "$ZIP" | cut -d' ' -f1)"
+fi
 
 LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
 
